@@ -1,22 +1,21 @@
 local TEST = {}
 
--- Test suite for FASTEST is a table with test cases
+-- Test suite is a table with test cases
 -- that are functions returning result to be asserted
--- and optional FASTEST_SETUP and FASTEST_CLEANUP fields
 -- with functions that will be triggered before and after each case
+--
+-- To run tests use function .run_all()
 
-local SUT = require "data.immutable"
+local SUT = require "immutable.immutable"
 
 local function is_table_immutable(table_to_check)
 	local can_not_mutate_value = not pcall(function() table_to_check[1] = "wrong" end)
 	local can_not_add_value = not pcall(function() table_to_check[5] = 5 end)
 	local can_not_remove_value = not pcall(function() table_to_check[1] = nil end)
---	local can_not_remove_value_using_table_api = not pcall(function() table.remove(table_to_check, 1) end)
 
 	return can_not_mutate_value
 	and can_not_add_value
 	and can_not_remove_value
---	and can_not_remove_value_using_table_api
 end
 
 TEST.create_immutable_table_using_call_operator = function()
