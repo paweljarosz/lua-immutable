@@ -1,3 +1,5 @@
+![](media/logo.png)
+
 # IMMUTABLE
 
 **IMMUTABLE** makes any Lua table runtime immutable (read-only) where one:
@@ -7,12 +9,22 @@
 
 ---
 
+## Defold dependency:
+
+You can add now Immutable as a dependency to Defold
+Open your `game.project` file and add the following line to the dependencies field under the `Project` section:
+
+Current version is 1.1:
+
+`https://github.com/paweljarosz/lua-immutable/archive/refs/tags/1.1.zip`
+
+
 ## Usage:
 
 Immutable tables can be created using the `.make` function or a direct call on required module:
 
 ```lua
-    local IMMUTABLE = require "immutable"
+    local IMMUTABLE = require "immutable.immutable"
     local data_table = { 1, 2, 3 } -- regular table
 
     -- convert any table to an immutable table:
@@ -113,11 +125,22 @@ If you spot any issue, please report! PRs are welcome too!
 
 ---
 
+### Changelog
+
+#### 1.0
+First public version release.
+
+#### 1.1
+Added Defold project and allowed to include Immutable as dependency in Defold.
+Added Lua annotations.
+
+---
+
 ### License
 
 MIT
 
-Copyright 2024 Paweł Jarosz
+Copyright 2024-2025 Paweł Jarosz
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

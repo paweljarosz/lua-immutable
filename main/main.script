@@ -1,0 +1,16 @@
+local immutable = require "immutable.immutable"
+
+function init(self)
+	-- Make any table immutable:
+	local my_data = immutable {
+		test_value = 1,
+	}
+
+	print("Value:  ", my_data.test_value)
+
+	--my_data.test_value = 2 -- modification rises runtime error
+
+	-- Runing tests:
+	local test = require "test.immutable_test"
+	test.run_all()
+end

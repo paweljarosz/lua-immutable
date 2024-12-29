@@ -38,26 +38,34 @@
 -- To prevent it, you can either avoid using table API or override them.
 -- Example on how to override table is given in README.
 --
--- Author: Pawel Jarosz
+-- Author: Paweł Jarosz
 -- License: MIT
--- 2024
+-- Copyright Paweł Jarosz 2024-2025
 
-local IMMUTABLE = {}
+---@class Immutable Immutable class to convert any table into runtime read-only table
+local Immutable = {}
 
 local immutable_marker = "immutable"
 local nil_placeholder = "nil_placeholder"  -- Unique placeholder for nil values
 
--- Function to check if a given table `t` is immutable
-function IMMUTABLE.is_immutable(table_to_check)
+---Checks if a given table `table_to_check` is immutable
+---@static
+---@param	table_to_check	table|Immutable		@table to check if is immutable
+---@return					boolean				@true if table is immutable, false otherwise
+function Immutable.is_immutable(table_to_check)
 	return type(table_to_check) == "table" and getmetatable(table_to_check) == immutable_marker
 end
 
--- Private function to make a table immutable, including nested tables
+---Makes a table immutable, including nested tables
+---@private
+---@param	original_table	table|Immutable		@table to convert
+---@param	seen?			table|Immutable		@optional table entry for recursion
+---@return					Immutable			@converted table
 local function make_immutable_table(original_table, seen)
 	seen = seen or {}
 
 	-- Skip making a table immutable if it already is
-	if IMMUTABLE.is_immutable(original_table) then
+	if Immutable.is_immutable(original_table) then
 		return original_table
 	end
 
@@ -68,7 +76,7 @@ local function make_immutable_table(original_table, seen)
 	seen[original_table] = data_table  -- Keep track of processed tables
 
 	for k, v in pairs(original_table) do
-		if type(v) == "table" and not IMMUTABLE.is_immutable(v) then
+		if type(v) == "table" and not Immutable.is_immutable(v) then
 			data_table[k] = make_immutable_table(v, seen)
 		elseif v == nil then
 			data_table[k] = nil_placeholder  -- Use placeholder for nil values
@@ -100,7 +108,7 @@ local function make_immutable_table(original_table, seen)
 		__metatable = immutable_marker,
 		-- Custom ipairs iterator
 		__ipairs = function(t)
-			local function ipairs_iterator(t, i)
+			local function ipairs_iterator(tab, i)
 				i = i + 1
 				local v = data_table[i]
 				if v == nil_placeholder then
@@ -139,22 +147,24 @@ local function make_immutable_table(original_table, seen)
 	return original_table
 end
 
--- Function to make a table immutable, including nested tables
-function IMMUTABLE.make(original_table)
+---Makes a given table immutable, including nested tables
+---@param original_table	table|Immutable @table to convert
+---@return					Immutable		@converted table
+function Immutable.make(original_table)
 	if type(original_table) ~= "table" then
 		error("Expected a table but got " .. type(original_table))
 	end
 	return make_immutable_table(original_table)
 end
 
--- Metatable for the IMMUTABLE module
+-- Metatable for the Immutable module
 local mt = {
 	-- Allows calling the module directly to create an immutable table
 	__call = function(t, table_arg)
-		return IMMUTABLE.make(table_arg)
+		return Immutable.make(table_arg)
 	end
 }
 
-setmetatable(IMMUTABLE, mt)
+setmetatable(Immutable, mt)
 
-return IMMUTABLE
+return Immutable
