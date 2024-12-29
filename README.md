@@ -16,7 +16,7 @@ Open your `game.project` file and add the following line to the dependencies fie
 
 Current version is 1.1:
 
-`https://github.com/paweljarosz/lua-immutable/archive/refs/tags/1.1.zip`
+`https://github.com/paweljarosz/lua-immutable/archive/refs/tags/v1.1.zip`
 
 
 ## Usage:
