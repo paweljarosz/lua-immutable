@@ -29,6 +29,11 @@
 -- @param table_to_check [table] - table to check
 -- @return [bool] - true if table t is immutable, false otherwise
 --
+-- [ IMMUTABLE.mutable_copy(immutable_or_table) ]
+-- Returns a mutable copy of the given @Immutable or regular table
+-- @param immutable_or_table table|Immutable - Immutable or regular table to make a mutable copy of
+-- @return [table] - mutable copy of the @Immutable or regular table data
+--
 -- [ IMMUTABLE.option_undefined_key_errors(value) ]
 -- Configures undefined key lookups into immutable tables to cause an error or not. Default is true.
 -- @param value [bool] - true if non-existent keys should throw an error, false otherwise
@@ -79,6 +84,34 @@ function Immutable.is_immutable(table_to_check)
 	return type(table_to_check) == "table" and getmetatable(table_to_check) == immutable_marker
 end
 
+---Returns a mutable copy of the given immutable or regular table
+---@private
+---@param	table			table|Immutable		@Immutable|@table to copy to a mutable @table
+---@return					table				@table copy of the original table data
+local function mutable_copy(table, seen)
+	seen = seen or {}
+
+	if seen[table] then return seen[table] end
+
+	local copy = {}
+	seen[table] = copy
+	for k, v in pairs(table) do
+		if type(v) == "table" then
+			if Immutable.is_immutable(v) then
+				copy[k] = v.__mutable_copy
+			else
+				copy[k] = mutable_copy(v, seen)
+			end
+		elseif v == nil_placeholder then
+			copy[k] = nil
+		else
+			copy[k] = v
+		end
+	end
+
+	return copy
+end
+
 ---Makes a table immutable, including nested tables
 ---@private
 ---@param	original_table	table|Immutable		@table to convert
@@ -113,7 +146,9 @@ local function make_immutable_table(original_table, seen)
 	local mt = {
 		-- Redirect reads to the data_table
 		__index = function(t, key)
-			if data_table[key] ~= nil then
+			if key == "__mutable_copy" then
+				return mutable_copy(data_table)
+			elseif data_table[key] ~= nil then
 				local value = data_table[key]
 				if value == nil_placeholder then
 					return nil  -- Return nil for placeholders
@@ -170,6 +205,22 @@ local function make_immutable_table(original_table, seen)
 
 	setmetatable(original_table, mt)
 	return original_table
+end
+
+---Returns a mutable copy of the given @Immutable table
+---@static
+---@param	table	table|Immutable				@Immutable table to make a mutable copy of
+---@return			table						@table mutable copy of the @Immutable table data
+function Immutable.mutable_copy(table)
+	if type(table) ~= "table" then
+		error("Expected a table but got " .. type(table))
+	end
+
+	if not Immutable.is_immutable(table) then
+		return mutable_copy(table) -- copies a regular table if necessary
+	end
+
+	return table.__mutable_copy
 end
 
 ---Makes a given table immutable, including nested tables

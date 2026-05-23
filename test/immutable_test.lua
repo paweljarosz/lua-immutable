@@ -372,6 +372,85 @@ TEST.can_delete_whole_table = function()
 	and test_table == nil
 end
 
+TEST.json_encoding_of_immutable_table_fails_silently = function()
+	local test_table = SUT {
+		type = "Wizard",
+		level = 9001,
+		abilities = {
+			"Smoking",
+			"Fireworks",
+			"Wisdom"
+		}
+	}
+
+	local json_encoded = ""
+	local json_encoding_without_error, json_encoding_error = pcall(function() json_encoded = json.encode(test_table) end)
+	if not json_encoding_without_error then
+		error(json_encoding_error)
+	end
+
+	local encoded_json_is_empty = json_encoded == "{}"
+
+	return encoded_json_is_empty
+end
+
+TEST.json_encoding_with_mutable_copy_works = function()
+	local test_table = SUT {
+		type = "Wizard",
+		level = 9001,
+		abilities = {
+			"Smoking",
+			"Fireworks",
+			"Wisdom"
+		}
+	}
+	local mutable_copy = SUT.mutable_copy(test_table)
+
+	local json_encoded = ""
+	local json_encoding_without_error, json_encoding_error = pcall(function() json_encoded = json.encode(mutable_copy) end)
+	if not json_encoding_without_error then
+		error(json_encoding_error)
+	end
+
+	if json_encoded == "{}" then
+		error("Bad JSON encoding, only got: {}")
+	end
+
+	local json_decoded = json.decode(json_encoded)
+	local type_matches = test_table.type == json_decoded.type
+	local level_matches = test_table.level == json_decoded.level
+	local abilities_match = test_table.abilities[1] == json_decoded.abilities[1]
+	and test_table.abilities[2] == json_decoded.abilities[2]
+	and test_table.abilities[3] == json_decoded.abilities[3]
+
+	return type_matches and level_matches and abilities_match
+end
+
+TEST.mutable_copy_can_also_copy_regular_tables = function()
+	local test_table = {
+		type = "Wizard",
+		level = 9001,
+		abilities = {
+			"Smoking",
+			"Fireworks",
+			"Wisdom"
+		}
+	}
+
+	local mutable_copy = SUT.mutable_copy(test_table)
+
+	local type_matches = test_table.type == mutable_copy.type
+	local level_matches = test_table.level == mutable_copy.level
+	local abilities_match = test_table.abilities[1] == mutable_copy.abilities[1]
+	and test_table.abilities[2] == mutable_copy.abilities[2]
+	and test_table.abilities[3] == mutable_copy.abilities[3]
+
+	mutable_copy.type = "Rogue"
+	local mutating_copy_does_not_modify_original = test_table.type ~= mutable_copy.type
+
+	return type_matches and level_matches and abilities_match and mutating_copy_does_not_modify_original
+end
+
 -- Known issue: Lua `table` API is not supported
 --[[TEST.table_api_inserting_value = function()
 	local test_table = SUT { 1, 2, 3 }

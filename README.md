@@ -14,9 +14,9 @@
 You can add now Immutable as a dependency to Defold
 Open your `game.project` file and add the following line to the dependencies field under the `Project` section:
 
-Current version is 1.1:
+Current version is 1.2:
 
-`https://github.com/paweljarosz/lua-immutable/archive/refs/tags/v1.1.zip`
+`https://github.com/paweljarosz/lua-immutable/archive/refs/tags/v1.2.zip`
 
 
 ## Usage:
@@ -49,6 +49,12 @@ You can check if any table is immutable (converted using this module) with `.is_
     local is_immutable = IMMUTABLE.is_immutable(my_table)
 ```
 
+If you need to convert an immutable table to JSON you can make a mutable copy of the immutable table:
+
+```lua
+    json.encode(IMMUTABLE.mutable_copy(immutable_table))
+```
+
 You can configure if attempts to read undefined keys from immutable tables should error (the default) or behave like normal tables by returning `nil`:
 
 ```lua
@@ -75,11 +81,18 @@ You can configure if attempts to read undefined keys from immutable tables shoul
     @return [bool] - true if table `table_to_check` is immutable, false otherwise
 ```
 
+#### IMMUTABLE.mutable_copy(table)
+- Function to return a mutable copy of the given @Immutable (or regular) table
+```lua
+    @param table table|Immutable - Immutable (or regular) table to make a mutable copy of
+    @return [table] - mutable copy of the Immutable table data
+```
+
 #### IMMUTABLE.option_undefined_key_errors(value)
 - Function to configure behavior on accessing undefined keys in an immutable table.
 ```lua
-    @param	value			boolean				@true if non-existent keys should throw an error, false otherwise
-    @return					boolean				@true if non-existent keys will throw an error, false otherwise
+    @param value [bool] - true if non-existent keys should throw an error, false otherwise
+    @return [bool] - true if non-existent keys will throw an error, false otherwise
 ```
 ---
 
@@ -134,6 +147,29 @@ function table.remove(t, pos)
 end
 ```
 
+### Immutable tables cannot be directly converted to JSON
+
+If you try to `json.encode(IMMUTABLE.make({ type = "Wizard" }))` the result will be `{}`. This may be related to
+various table functions not working properly in Lua 5.1 used by Defold (in spite of the metatable adjustments made
+by the library). See [stackoverflow](https://stackoverflow.com/questions/25716851/lua-table-length-function-override-not-working) and [Lua 5.1 manual section 2.8 on metatables](https://www.lua.org/manual/5.1/manual.html).
+
+As a workaround you can make a mutable copy of the table before trying to save it:
+
+```lua
+local test_table = IMMUTABLE.make({
+    type = "Wizard",
+    level = 9001,
+    abilities = {
+        "Smoking",
+        "Fireworks",
+        "Wisdom"
+    }
+}
+
+local mutable_copy = IMMUTABLE.mutable_copy(test_table)
+local json_encoded = json.encode(mutable_copy)
+```
+
 If you spot any issue, please report! PRs are welcome too!
 
 ---
@@ -149,6 +185,7 @@ Added Lua annotations.
 
 #### 1.2
 Added option_undefined_key_errors to let immutable tables behave more like regular tables.
+Added mutable_copy function to enable converting immutable tables to JSON.
 
 ---
 
