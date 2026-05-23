@@ -154,6 +154,35 @@ TEST.error_when_getting_non_existing_entry = function()
 	return not pcall(function() local a = test_table.new_entry end)
 end
 
+TEST.error_when_getting_non_existing_entry_can_be_toggled_off = function()
+	SUT.option_undefined_key_errors(false)
+	local test_table = SUT { width = 10 }
+	
+	local get_property_by_index_is_nil = false
+	local get_property_by_sugar_is_nil = false
+	local no_errors, error_msg = pcall(function()
+		get_property_by_index_is_nil = test_table["height"] == nil
+		get_property_by_sugar_is_nil = test_table.height == nil
+	end)
+	
+	SUT.option_undefined_key_errors(true) -- restore global default value for other tests
+	if not no_errors then
+		error(error_msg)
+	end
+	
+	return get_property_by_index_is_nil and get_property_by_sugar_is_nil
+end
+
+TEST.option_undefined_key_errors_defaults_to_true_on_bad_input = function()
+	local default_is_true = SUT.option_undefined_key_errors() == true
+	local remains_true_on_string = SUT.option_undefined_key_errors("not a boolean")
+	local number = SUT.option_undefined_key_errors(5)
+	local table = SUT.option_undefined_key_errors({})
+	local func = SUT.option_undefined_key_errors(function() end)
+
+	return default_is_true and remains_true_on_string or number or table or func
+end
+
 TEST.error_when_getting_out_of_bounds_entry = function()
 	local test_table = SUT { 1, 2, 3 }
 
@@ -342,17 +371,6 @@ TEST.can_delete_whole_table = function()
 	return is_deletion_possible
 	and test_table == nil
 end
-
--- Known issue: Keys referencing `nil` are inaccessible in immutable table
---[[TEST.referencing_nil = function()
-	local test_table = SUT { position = nil }
-
-	local is_access_possible, error_message = pcall(function()
-		local a = test_table.position
-	end)
-
-	return is_access_possible, error_message
-end]]
 
 -- Known issue: Lua `table` API is not supported
 --[[TEST.table_api_inserting_value = function()

@@ -29,10 +29,16 @@
 -- @param table_to_check [table] - table to check
 -- @return [bool] - true if table t is immutable, false otherwise
 --
+-- [ IMMUTABLE.option_undefined_key_errors(value) ]
+-- Configures undefined key lookups into immutable tables to cause an error or not. Default is true.
+-- @param value [bool] - true if non-existent keys should throw an error, false otherwise
+-- @return [bool] - true if non-existent keys will throw an error, false otherwise
+--
 -- Known issues:
 --
 -- Keys referencing `nil` in the original table will be inaccesible in the immutable table.
 -- To prevent unidentified key access, initialize the fields with any other value.
+-- Or use `IMMUTABLE.option_undefined_key_errors(false)` to return nil like regular tables.
 -- 
 -- Lua `table` API is not secured against mutability.
 -- To prevent it, you can either avoid using table API or override them.
@@ -47,6 +53,23 @@ local Immutable = {}
 
 local immutable_marker = "immutable"
 local nil_placeholder = "nil_placeholder"  -- Unique placeholder for nil values
+local undefined_key_errors = true
+
+---Configures undefined key lookups into immutable tables to cause an error or not. Default is true.
+---@static
+---@param	value			boolean				@true if non-existent keys should throw an error, false otherwise
+---@return					boolean				@true if non-existent keys will throw an error, false otherwise
+function Immutable.option_undefined_key_errors(value)
+	if value ~= nil then
+		if type(value) == "boolean" then
+			undefined_key_errors = value
+		else
+			undefined_key_errors = true
+		end
+	end
+	
+	return undefined_key_errors
+end
 
 ---Checks if a given table `table_to_check` is immutable
 ---@static
@@ -96,8 +119,10 @@ local function make_immutable_table(original_table, seen)
 					return nil  -- Return nil for placeholders
 				end
 				return value
-			else
+			elseif undefined_key_errors then
 				error("Attempt to access undefined key: " .. tostring(key))
+			else
+				return nil
 			end
 		end,
 		-- Prevent any modifications

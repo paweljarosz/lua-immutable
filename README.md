@@ -49,6 +49,12 @@ You can check if any table is immutable (converted using this module) with `.is_
     local is_immutable = IMMUTABLE.is_immutable(my_table)
 ```
 
+You can configure if attempts to read undefined keys from immutable tables should error (the default) or behave like normal tables by returning `nil`:
+
+```lua
+    IMMUTABLE.option_undefined_key_errors(false)
+```
+
 ---
 
 ## API:
@@ -69,6 +75,12 @@ You can check if any table is immutable (converted using this module) with `.is_
     @return [bool] - true if table `table_to_check` is immutable, false otherwise
 ```
 
+#### IMMUTABLE.option_undefined_key_errors(value)
+- Function to configure behavior on accessing undefined keys in an immutable table.
+```lua
+    @param	value			boolean				@true if non-existent keys should throw an error, false otherwise
+    @return					boolean				@true if non-existent keys will throw an error, false otherwise
+```
 ---
 
 ## Known issues and limitations:
@@ -78,6 +90,7 @@ You can check if any table is immutable (converted using this module) with `.is_
 Immutable tables does not allow access to unidentified keys.
 So if in the original table a key is referencing a `nil` value, accessing it in immutable version will not be possible.
 To prevent unidentified key access, initialize the fields with any other value.
+Or use `IMMUTABLE.option_undefined_key_errors(false)` to return nil like regular tables.
 
 ### Lua `table` API is not supported
 
@@ -133,6 +146,9 @@ First public version release.
 #### 1.1
 Added Defold project and allowed to include Immutable as dependency in Defold.
 Added Lua annotations.
+
+#### 1.2
+Added option_undefined_key_errors to let immutable tables behave more like regular tables.
 
 ---
 
