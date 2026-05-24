@@ -194,7 +194,7 @@ TEST.error_when_getting_entries_in_loops_local_iterator = function()
 
 	local success = true
 	-- Manually iterate and check immutability
-	for i = 1, #test_table do
+	for i = 1, SUT.len(test_table) do
 		local ok = pcall(function()
 			local value = test_table[i]
 			test_table[i] = 9
@@ -205,7 +205,9 @@ TEST.error_when_getting_entries_in_loops_local_iterator = function()
 		end
 	end
 
-	return success
+	local correct_num_entries = SUT.len(test_table) == 3
+
+	return success and correct_num_entries
 end
 
 TEST.error_when_setting_entries_in_loops_pairs = function()
@@ -259,7 +261,7 @@ TEST.ok_when_getting_entries_in_loops_local_iterator = function()
 
 	local success = true
 	-- Manually iterate and check if getting entries is allowed
-	for i = 1, #test_table do
+	for i = 1, SUT.len(test_table) do
 		local ok, value = pcall(function()
 			return test_table[i]
 		end)
@@ -269,7 +271,9 @@ TEST.ok_when_getting_entries_in_loops_local_iterator = function()
 		end
 	end
 
-	return success
+	local correct_num_entries = SUT.len(test_table) == 3
+
+	return success and correct_num_entries
 end
 
 
@@ -449,6 +453,20 @@ TEST.mutable_copy_can_also_copy_regular_tables = function()
 	local mutating_copy_does_not_modify_original = test_table.type ~= mutable_copy.type
 
 	return type_matches and level_matches and abilities_match and mutating_copy_does_not_modify_original
+end
+
+TEST.known_issue_metatable_len_override_does_not_work_helper_works = function()
+	local test_table = { 1, 2, 3 }
+	local test_immutable = SUT { 1, 2, 3 }
+
+	local hash_operator_for_table = #test_table
+	local hash_operator_for_immutable = #test_immutable
+	local override_len = SUT.len(test_immutable)
+
+	local hash_operator_is_inconsistent = hash_operator_for_table ~= hash_operator_for_immutable
+	local override_len_is_consistent = hash_operator_for_table == override_len
+
+	return hash_operator_is_inconsistent and override_len_is_consistent
 end
 
 -- Known issue: Lua `table` API is not supported

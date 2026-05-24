@@ -34,6 +34,11 @@
 -- @param immutable_or_table table|Immutable - Immutable or regular table to make a mutable copy of
 -- @return [table] - mutable copy of the @Immutable or regular table data
 --
+-- [ IMMUTABLE.len(table_to_len) ]
+-- Returns the length of the table (equivalent to # operator, useful in Lua 5.1 where the # operator override does not work)
+-- @param table_to_len table|Immutable - table to get length of
+-- @return number - length of the table corresponding to #table_to_len
+--
 -- [ IMMUTABLE.option_undefined_key_errors(value) ]
 -- Configures undefined key lookups into immutable tables to cause an error or not. Default is true.
 -- @param value [bool] - true if non-existent keys should throw an error, false otherwise
@@ -143,11 +148,17 @@ local function make_immutable_table(original_table, seen)
 	end
 
 	-- Set the metatable on the original table to make it immutable
+	local custom_len = function()
+		return #data_table
+	end
+
 	local mt = {
 		-- Redirect reads to the data_table
 		__index = function(t, key)
 			if key == "__mutable_copy" then
 				return mutable_copy(data_table)
+			elseif key == "__len" then
+				return custom_len
 			elseif data_table[key] ~= nil then
 				local value = data_table[key]
 				if value == nil_placeholder then
@@ -198,9 +209,7 @@ local function make_immutable_table(original_table, seen)
 			return "Immutable: " .. tostring(data_table)
 		end,
 		-- Custom len function
-		__len = function()
-			return #data_table
-		end,
+		__len = custom_len,
 	}
 
 	setmetatable(original_table, mt)
@@ -224,13 +233,26 @@ function Immutable.mutable_copy(table)
 end
 
 ---Makes a given table immutable, including nested tables
----@param original_table	table|Immutable @table to convert
+---@param	original_table	table|Immutable @table to convert
 ---@return					Immutable		@converted table
 function Immutable.make(original_table)
 	if type(original_table) ~= "table" then
 		error("Expected a table but got " .. type(original_table))
 	end
 	return make_immutable_table(original_table)
+end
+
+---Returns the length of the table (equivalent to # operator, useful in Lua 5.1 where the # operator override does not work).
+---@param	table_to_len	table|Immutable @table to get length of
+---@return					number			@number length of the table corresponding to #table_to_len
+function Immutable.len(table_to_len)
+	if Immutable.is_immutable(table_to_len) then
+		return table_to_len.__len()
+	elseif type(table_to_len) == "table" then
+		return #table_to_len
+	else
+		return 0
+	end
 end
 
 -- Metatable for the Immutable module

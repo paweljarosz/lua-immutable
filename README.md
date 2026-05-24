@@ -49,6 +49,15 @@ You can check if any table is immutable (converted using this module) with `.is_
     local is_immutable = IMMUTABLE.is_immutable(my_table)
 ```
 
+In Lua 5.1 (used by Defold), the # operator override does not work. You can instead check table length with this helper:
+
+```lua
+    -- In Lua 5.1
+    local test = IMMUTABLE{ 1, 2, 3 }
+    local hash_operator_value = #test         -- == 0
+    local helper_value = IMMUTABLE.len(test)  -- == 3
+```
+
 If you need to convert an immutable table to JSON you can make a mutable copy of the immutable table:
 
 ```lua
@@ -87,6 +96,15 @@ You can configure if attempts to read undefined keys from immutable tables shoul
     @param table table|Immutable - Immutable (or regular) table to make a mutable copy of
     @return [table] - mutable copy of the Immutable table data
 ```
+
+
+#### IMMUTABLE.len(table_to_len)
+- Returns the length of the table (equivalent to # operator, useful in Lua 5.1 where the # operator override does not work).
+```lua
+    @param table_to_len table|Immutable - table to get length of
+    @return number - number length of the table corresponding to #table_to_len
+```
+
 
 #### IMMUTABLE.option_undefined_key_errors(value)
 - Function to configure behavior on accessing undefined keys in an immutable table.
@@ -186,6 +204,7 @@ Added Lua annotations.
 #### 1.2
 Added option_undefined_key_errors to let immutable tables behave more like regular tables.
 Added mutable_copy function to enable converting immutable tables to JSON.
+Added len function as an alternative to the # operator in Lua 5.1 (used by Defold).
 
 ---
 
