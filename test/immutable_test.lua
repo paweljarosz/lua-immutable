@@ -455,6 +455,33 @@ TEST.mutable_copy_can_also_copy_regular_tables = function()
 	return type_matches and level_matches and abilities_match and mutating_copy_does_not_modify_original
 end
 
+TEST.mutable_copy_preserves_shared_references = function()
+	local inner1 = {
+		name = "inner1"
+	}
+	local inner2 = {
+		name = "inner2",
+		other = inner1
+	}
+	local test_table = SUT {
+		type = "Wizard",
+		level = 9001,
+		abilities = {
+			"Smoking",
+			"Fireworks",
+			"Wisdom"
+		},
+		inner1 = inner1,
+		inner2 = inner2
+	}
+
+	local mutable_copy = SUT.mutable_copy(test_table)
+
+	local references_match = mutable_copy.inner2.other == mutable_copy.inner1
+
+	return references_match
+end
+
 TEST.known_issue_metatable_len_override_does_not_work_helper_works = function()
 	local test_table = { 1, 2, 3 }
 	local test_immutable = SUT { 1, 2, 3 }
