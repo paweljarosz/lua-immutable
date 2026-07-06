@@ -156,7 +156,7 @@ local function make_immutable_table(original_table, seen)
 		-- Redirect reads to the data_table
 		__index = function(t, key)
 			if key == "__mutable_copy" then
-				return mutable_copy(data_table)
+				return mutable_copy(data_table, seen)
 			elseif key == "__len" then
 				return custom_len
 			elseif data_table[key] ~= nil then
